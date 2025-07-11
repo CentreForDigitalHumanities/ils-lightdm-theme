@@ -13,6 +13,7 @@
   let username = ""
   let secret = ""
   let retries = 0
+  let isAuthenticating = false
 
   const lightdm = window.lightdm || {}
 
@@ -59,11 +60,20 @@
 
   function authenticate(username) {
     console.log('Authenticating', username);
+    isAuthenticating = true;
     lightdm.authenticate(username);
-    setTimeout(() => {console.log('Responding password');lightdm.respond(secret)}, 1000)
+    setTimeout(() => {
+        console.log('Responding password');
+        lightdm.respond(secret)
+        }, 1000)
   }
 
   lightdm.authentication_complete.connect(() => {
+    if (!isAuthenticating) {
+      // auth is happening in another window
+      return;
+    }
+    isAuthenticating = false;
     console.log("Authentication complete")
     console.log("is_authenticated", lightdm.is_authenticated)
     if (lightdm.is_authenticated) {
@@ -86,6 +96,11 @@
   })
 
   lightdm.show_message.connect((text) => {
+    if (!isAuthenticating) {
+      // auth is happening in another window
+      return;
+    }
+    isAuthenticating = false;
     console.log(text)
     setIdle(true)
     error = text
