@@ -96,6 +96,11 @@
   })
 
   lightdm.show_message.connect((text) => {
+    // Fix for cached credentials message stopping auth
+    // There is a better fix to think of, but well, no
+    if (text.toLowerCase().includes("authenticated with cached")) {
+      return;
+    }
     if (!isAuthenticating) {
       // auth is happening in another window
       return;
